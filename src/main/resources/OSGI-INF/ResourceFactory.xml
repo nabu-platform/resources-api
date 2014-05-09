@@ -1,0 +1,12 @@
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="be.nabu.libs.resources.ResourceFactory">
+        
+        <implementation class="be.nabu.libs.resources.ResourceFactory" />
+        
+        <reference name="ResourceFactory"
+                interface="be.nabu.libs.resources.api.ResourceResolver"
+                bind="addResourceResolver"
+                unbind="removeResourceResolver"
+                cardinality="0..n"
+                policy="static"/>
+
+</scr:component>
