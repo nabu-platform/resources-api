@@ -12,8 +12,8 @@ However there are two things to consider:
 - Resources are mainly used to manage input/output to them which has to be managed separately, we'd rather not end up with code like:
 
 ```java
-public void doSomething(ReadableResource resource) {
-	ReadableResource resource = ...;
+public void doSomething(ResourceContainer container, String name) {
+	ReadableResource resource = container.getChild(name);
 	try {
 		ReadableContainer<ByteBuffer> readable = resource.getReadable();
 		try {
