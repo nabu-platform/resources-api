@@ -25,6 +25,10 @@ import be.nabu.utils.io.api.ReadableContainer;
 import be.nabu.utils.io.api.WritableContainer;
 
 public class ResourceUtils {
+
+	public static ReadableResource wrapReadable(byte [] bytes, int offset, int length) {
+		return new ReadableByteResource(bytes, offset, length);
+	}
 	
 	public static List<Resource> find(ResourceContainer<?> container, ResourceFilter filter, boolean recursive) {
 		List<Resource> result = new ArrayList<Resource>();
