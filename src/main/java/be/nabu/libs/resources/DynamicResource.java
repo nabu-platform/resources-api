@@ -22,14 +22,16 @@ public class DynamicResource implements ReadableResource {
 	private String name;
 	private DynamicByteBuffer content;
 	private boolean alreadyRequested = false;
-	private boolean alreadyClosed = false;
+	private boolean shouldClose = false;
 	
 	@SuppressWarnings("unchecked")
-	public DynamicResource(ReadableContainer<ByteBuffer> content, String name, String contentType) {
+	public DynamicResource(ReadableContainer<ByteBuffer> content, String name, String contentType, boolean shouldClose) {
 		this.name = name;
 		this.contentType = contentType;
 		this.content = new DynamicByteBuffer();
+		this.shouldClose = shouldClose;
 		originalContent = new ReadableContainerDuplicator<ByteBuffer>(content, this.content);
+		this.content.mark();
 	}
 	
 	@Override
@@ -51,16 +53,27 @@ public class DynamicResource implements ReadableResource {
 	public ReadableContainer<ByteBuffer> getReadable() throws IOException {
 		if (!alreadyRequested) {
 			alreadyRequested = true;
-			return originalContent;
+			return shouldClose ? originalContent : new UncloseableReadableContainer(originalContent);
 		}
-		else {
-			if (!alreadyClosed) {
-				alreadyClosed = true;
-				originalContent.close();
-				content.mark();
-			}
+		else
 			return content.clone();
-		}
 	}
 
+	private static class UncloseableReadableContainer implements ReadableContainer<ByteBuffer> {
+		private ReadableContainer<ByteBuffer> parent;
+
+		public UncloseableReadableContainer(ReadableContainer<ByteBuffer> parent) {
+			this.parent = parent;
+		}
+
+		@Override
+		public void close() throws IOException {
+			// do nothing
+		}
+
+		@Override
+		public long read(ByteBuffer buffer) throws IOException {
+			return parent.read(buffer);
+		}
+	}
 }
