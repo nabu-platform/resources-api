@@ -26,6 +26,20 @@ public class URIUtils {
 		return uri;
 	}
 	
+	public static String decodeURI(String uri) {
+		if (uri != null) {
+			uri = uri.replace("%20", " ");
+			uri = uri.replace("%7B", "{");
+			uri = uri.replace("%7D", "}");
+			uri = uri.replace("%7C", "|");
+			uri = uri.replace("%5E", "^");
+			uri = uri.replace("%5B", "[");
+			uri = uri.replace("%5D", "]");
+			uri = uri.replace("%25", "%");
+		}
+		return uri;
+	}
+	
 	public static String encodeURIComponent(String uriComponent) {
 		if (uriComponent != null) {
 			uriComponent = encodeURI(uriComponent);
@@ -41,11 +55,41 @@ public class URIUtils {
 		return uriComponent;
 	}
 	
+	public static String decodeURIComponent(String uriComponent) {
+		if (uriComponent != null) {
+			uriComponent = uriComponent.replace("%2F", "/");
+			uriComponent = uriComponent.replace("%3A", ":");
+			uriComponent = uriComponent.replace("%3F", "?");
+			uriComponent = uriComponent.replace("%26", "&");
+			uriComponent = uriComponent.replace("%2B", "+");
+			uriComponent = uriComponent.replace("%3D", "=");
+			uriComponent = uriComponent.replace("%23", "#");
+			uriComponent = uriComponent.replace("%40", "@");
+			uriComponent = decodeURI(uriComponent);
+		}
+		return uriComponent;
+	}
+	
+	public static String decodeHTMLComponent(String htmlComponent) {
+		if (htmlComponent != null) {
+			htmlComponent = htmlComponent.replace("+", " ");
+			htmlComponent = decodeURIComponent(htmlComponent);
+		}
+		return htmlComponent;
+	}
+	
 	public static String URLEncodingToURIEncoding(String urlEncoded) {
 		if (urlEncoded != null) {
 			urlEncoded = urlEncoded.replace("+", "%20");
 		}
 		return urlEncoded;
+	}
+	
+	public static String URIEncodingToURLEncoding(String uriEncoded) {
+		if (uriEncoded != null) {
+			uriEncoded = uriEncoded.replace("%20", "+");
+		}
+		return uriEncoded;
 	}
 	
 	public static String relativize(String rootPath, String childPath) {
@@ -63,16 +107,25 @@ public class URIUtils {
 	}
 	
 	public static Map<String, List<String>> getQueryProperties(URI uri) {
-		Map<String, List<String>> properties = new HashMap<String, List<String>>();
-		if (uri.getQuery() == null)
-			return properties;
-		for (String part : uri.getQuery().split("&")) {
-			String [] parts = part.split("=");
-			if (!properties.containsKey(parts[0]))
-				properties.put(parts[0], new ArrayList<String>());
-			properties.get(parts[0]).add(parts.length > 1 ? parts[1] : null);
+		Map<String, List<String>> parameters = new HashMap<String, List<String>>();
+		if (uri.getQuery() != null) {
+			for (String part : uri.getQuery().split("[\\s]*&[\\s]*")) {
+				int index = part.indexOf('=');
+				String key = null;
+				String value = null;
+				if (index < 0)
+					key = part.trim();
+				else {
+					key = part.substring(0, index).trim();
+					value = decodeURIComponent(URLEncodingToURIEncoding(part.substring(index + 1).trim()));
+				}
+				if (!parameters.containsKey(key))
+					parameters.put(key, new ArrayList<String>());
+				if (value != null)
+					parameters.get(key).add(value);
+			}
 		}
-		return properties;
+		return parameters;
 	}
 	
 	public static String normalize(String path) {
