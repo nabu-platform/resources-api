@@ -35,19 +35,19 @@ public class DynamicResource implements ReadableResource {
 		this.content = backend;
 		if (backend instanceof MarkableContainer)
 			((MarkableContainer<ByteBuffer>) backend).mark();
-		originalContent = new ReadableContainerDuplicator<ByteBuffer>(content, this.content);
+		this.originalContent = new ReadableContainerDuplicator<ByteBuffer>(originalContent, this.content);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public DynamicResource(ReadableContainer<ByteBuffer> content, String name, String contentType, boolean shouldClose) {
-		this(content, new DynamicByteBuffer(), name, contentType, shouldClose);
+	public DynamicResource(ReadableContainer<ByteBuffer> originalContent, String name, String contentType, boolean shouldClose) {
+		this(originalContent, new DynamicByteBuffer(), name, contentType, shouldClose);
 		this.name = name;
 		this.contentType = contentType;
 		this.shouldClose = shouldClose;
 		DynamicByteBuffer buffer = new DynamicByteBuffer();
 		buffer.mark();
 		this.content = buffer;
-		originalContent = new ReadableContainerDuplicator<ByteBuffer>(content, this.content);
+		this.originalContent = new ReadableContainerDuplicator<ByteBuffer>(originalContent, this.content);
 	}
 	
 	@Override
