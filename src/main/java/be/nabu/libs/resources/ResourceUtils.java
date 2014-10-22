@@ -186,12 +186,7 @@ public class ResourceUtils {
 		else {
 			if (!(resource instanceof ResourceContainer))
 				throw new IOException("Only listable resources can have child resources, can not retrieve " + path[counter] + " from " + resource.getName() + ". Path: " + Arrays.asList(path));
-			for (Resource child : ((ResourceContainer<?>) resource)) {
-				if (child.getName().equals(path[counter])) {
-					target = child;
-					break;
-				}
-			}
+			target = ((ResourceContainer<?>) resource).getChild(path[counter]);
 		}
 		if (target == null || counter == path.length - 1)
 			return target;

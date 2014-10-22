@@ -25,7 +25,6 @@ public class ResourceReadableContainer implements ReadableContainer<ByteBuffer> 
 		this.manageResource = manageResource;
 	}
 
-	
 	@Override
 	public void close() throws IOException {
 		try {
