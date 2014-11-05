@@ -128,6 +128,15 @@ public class URIUtils {
 		return parameters;
 	}
 	
+	public static URI normalize(URI uri) {
+		try {
+			return new URI(uri.getScheme(), uri.getAuthority(), normalize(uri.getPath()), uri.getQuery(), uri.getFragment());
+		}
+		catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	public static String normalize(String path) {
 		// remove all "." references which point to the path itself
 		while (path.contains("/./"))
