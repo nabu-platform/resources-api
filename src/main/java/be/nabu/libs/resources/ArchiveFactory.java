@@ -1,7 +1,10 @@
 package be.nabu.libs.resources;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -45,11 +48,39 @@ public class ArchiveFactory {
 		return getResolvers().keySet();
 	}
 	
+	@SuppressWarnings("unchecked")
 	private Map<String, ArchiveResolver> getResolvers() {
 		if (resolvers.isEmpty()) {
-			ServiceLoader<ArchiveResolver> serviceLoader = ServiceLoader.load(ArchiveResolver.class);
-			for (ArchiveResolver resolver : serviceLoader)
-				addResourceResolver(resolver);
+			try {
+				// let's try this with custom service loading based on a configuration
+				Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass("be.nabu.utils.services.ServiceLoader");
+				Method declaredMethod = clazz.getDeclaredMethod("load", Class.class);
+				for (ArchiveResolver resolver : (List<ArchiveResolver>) declaredMethod.invoke(null, ArchiveResolver.class)) {
+					addResourceResolver(resolver);
+				}
+			}
+			catch (ClassNotFoundException e) {
+				// ignore, the framework is not present
+			}
+			catch (NoSuchMethodException e) {
+				// corrupt framework?
+				throw new RuntimeException(e);
+			}
+			catch (SecurityException e) {
+				throw new RuntimeException(e);
+			}
+			catch (IllegalAccessException e) {
+				// ignore
+			}
+			catch (InvocationTargetException e) {
+				// ignore
+			}
+			if (resolvers.isEmpty()) {
+				ServiceLoader<ArchiveResolver> serviceLoader = ServiceLoader.load(ArchiveResolver.class);
+				for (ArchiveResolver resolver : serviceLoader) {
+					addResourceResolver(resolver);
+				}
+			}
 		}
 		return resolvers;
 	}
