@@ -54,7 +54,7 @@ public class ResourceFactory {
 		if (resolvers.isEmpty()) {
 			try {
 				// let's try this with custom service loading based on a configuration
-				Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass("be.nabu.utils.services.ServiceLoader");
+				Class<?> clazz = getClass().getClassLoader().loadClass("be.nabu.utils.services.ServiceLoader");
 				Method declaredMethod = clazz.getDeclaredMethod("load", Class.class);
 				for (ResourceResolver resolver : (List<ResourceResolver>) declaredMethod.invoke(null, ResourceResolver.class)) {
 					addResourceResolver(resolver);
