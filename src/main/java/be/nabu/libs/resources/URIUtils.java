@@ -174,7 +174,7 @@ public class URIUtils {
 		else
 			path += "/" + name;
 		try {
-			return new URI(parent.getScheme(), parent.getHost(), path, parent.getFragment());
+			return new URI(parent.getScheme(), parent.getAuthority(), path, parent.getQuery(), parent.getFragment());
 		}
 		catch (URISyntaxException e) {
 			throw new RuntimeException(e);
