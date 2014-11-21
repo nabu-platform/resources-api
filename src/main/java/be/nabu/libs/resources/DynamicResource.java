@@ -1,5 +1,6 @@
 package be.nabu.libs.resources;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import be.nabu.libs.resources.api.ReadableResource;
@@ -18,7 +19,7 @@ import be.nabu.utils.io.containers.ReadableContainerDuplicator;
  * The next you get a readable, you will get the memory duplicate
  * Requesting the readable again will also close the original one though
  */
-public class DynamicResource implements ReadableResource {
+public class DynamicResource implements ReadableResource, Closeable {
 
 	private ReadableContainer<ByteBuffer> originalContent;
 	private String contentType;
@@ -72,8 +73,9 @@ public class DynamicResource implements ReadableResource {
 			alreadyRequested = true;
 			return shouldClose ? originalContent : new UncloseableReadableContainer(originalContent);
 		}
-		else
+		else {
 			return ((DuplicatableContainer<ByteBuffer, ? extends ReadableContainer<ByteBuffer>>) content).duplicate(true);
+		}
 	}
 
 	private static class UncloseableReadableContainer implements ReadableContainer<ByteBuffer> {
@@ -92,5 +94,10 @@ public class DynamicResource implements ReadableResource {
 		public long read(ByteBuffer buffer) throws IOException {
 			return parent.read(buffer);
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		content.close();
 	}
 }
