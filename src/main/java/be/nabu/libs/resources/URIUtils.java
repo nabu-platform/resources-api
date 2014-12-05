@@ -193,6 +193,7 @@ public class URIUtils {
 		if (path.equals("/"))
 			return null;
 		else
-			return path.replaceAll(".*/", "");
+			// first remove any trailing
+			return path.replaceAll("[/]+$", "").replaceAll(".*/", "");
 	}
 }
