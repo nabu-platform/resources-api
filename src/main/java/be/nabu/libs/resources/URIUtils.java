@@ -20,8 +20,8 @@ public class URIUtils {
 			uri = uri.replace("[", "%5B");
 			uri = uri.replace("]", "%5D");
 			// as per 2.4.3 of RFC 2396 characters "`" (%60) and "\" (%5C) should also be encoded
-			// skipping for unix/windows reasons atm until we absolutely need it
-//			uri = uri.replace("\\", "%5C");
+			uri = uri.replace("\\", "%5C");
+			uri = uri.replace("`", "%60");
 		}
 		return uri;
 	}
