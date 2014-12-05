@@ -94,6 +94,8 @@ public class URIUtils {
 	
 	public static String relativize(String rootPath, String childPath) {
 		try {
+			rootPath = cleanPath(rootPath);
+			childPath = cleanPath(childPath);
 			URI rootURI = new URI(encodeURI(rootPath));
 			URI childURI = new URI(encodeURI(childPath));
 			String relativePath = rootURI.relativize(childURI).getPath();
@@ -104,6 +106,10 @@ public class URIUtils {
 		catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	private static String cleanPath(String path) {
+		return path.replaceAll("[/]{2,}", "/");
 	}
 	
 	public static Map<String, List<String>> getQueryProperties(URI uri) {
@@ -138,6 +144,7 @@ public class URIUtils {
 	}
 	
 	public static String normalize(String path) {
+		path = cleanPath(path);
 		// remove all "." references which point to the path itself
 		while (path.contains("/./"))
 			path = path.replaceAll("/\\./", "/");
@@ -151,12 +158,12 @@ public class URIUtils {
 	}
 	
 	public static URI getParent(URI uri) {
-		String path = uri.getPath();
+		String path = cleanPath(uri.getPath());
 		if (path.equals("/") || path.isEmpty())
 			return null;
 		else
-			// remove the last bit
-			path = path.replaceAll("/[^/]+$", "");
+			// first remove any trailing "/", then remove the last bit
+			path = path.replaceAll("[/]+$", "").replaceAll("/[^/]+$", "");
 		if (path.equals(""))
 			path = "/";
 		try {
@@ -168,7 +175,7 @@ public class URIUtils {
 	}
 	
 	public static URI getChild(URI parent, String name) {
-		String path = parent.getPath();
+		String path = cleanPath(parent.getPath());
 		if (path.equals("/") || path.isEmpty())
 			path += name;
 		else
@@ -182,7 +189,7 @@ public class URIUtils {
 	}
 	
 	public static String getName(URI uri) {
-		String path = uri.getPath();
+		String path = cleanPath(uri.getPath());
 		if (path.equals("/"))
 			return null;
 		else
