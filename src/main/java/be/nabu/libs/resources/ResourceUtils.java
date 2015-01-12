@@ -238,4 +238,47 @@ public class ResourceUtils {
 		}
 		return null;
 	}
+	
+	public static Resource rename(Resource original, String name) throws IOException {
+		ManageableContainer<?> parent = (ManageableContainer<?>) original.getParent();
+		Resource renamed = copy(original, parent, name);
+		parent.delete(original.getName());
+		return renamed;
+	}
+	
+	public static Resource copy(Resource original, ManageableContainer<?> target) throws IOException {
+		return copy(original, target, original.getName());
+	}
+	
+	public static Resource copy(Resource original, ManageableContainer<?> target, String newName) throws IOException {
+		if (target.getChild(newName) != null) {
+			throw new IOException("The target '" + newName + "' already exists");
+		}
+		Resource child = target.create(newName, original.getContentType());
+		if (original instanceof ResourceContainer) {
+			ManageableContainer<?> targetContainer = (ManageableContainer<?>) child;
+			for (Resource childOriginal : (ResourceContainer<?>) original) {
+				copy(childOriginal, targetContainer);
+			}
+		}
+		else if (original instanceof ReadableResource) {
+			ReadableContainer<ByteBuffer> readable = ((ReadableResource) original).getReadable();
+			try {
+				WritableContainer<ByteBuffer> writable = new ResourceWritableContainer((WritableResource) child);
+				try {
+					IOUtils.copyBytes(readable, writable);
+				}
+				finally {
+					writable.close();
+				}
+			}
+			finally {
+				readable.close();
+			}
+		}
+		else {
+			throw new IOException("Could not copy: " + original.getName());
+		}
+		return child;
+	}
 }
