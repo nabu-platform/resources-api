@@ -179,7 +179,7 @@ public class URIUtils {
 		if (path.equals("/") || path.isEmpty())
 			path += name;
 		else
-			path += "/" + name;
+			path += "/" + name.replaceAll("^[/]+", "");
 		try {
 			return new URI(parent.getScheme(), parent.getAuthority(), path, parent.getQuery(), parent.getFragment());
 		}
