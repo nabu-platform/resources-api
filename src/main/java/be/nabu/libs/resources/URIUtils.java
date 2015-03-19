@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class URIUtils {
 	
@@ -146,13 +148,21 @@ public class URIUtils {
 	public static String normalize(String path) {
 		path = cleanPath(path);
 		// remove all "." references which point to the path itself
-		while (path.contains("/./"))
-			path = path.replaceAll("/\\./", "/");
+		path = path.replaceAll("/\\.(/|$)", "/");
+
+		int length = path.length();
+		Pattern pattern = Pattern.compile("/\\.\\.(?=/|$)");
+		Matcher matcher = pattern.matcher(path);
 		// remove all parts that are followed by a ".." which means go back by one
-		while (path.contains("/../")) {
-			if (path.startsWith("/../"))
-				throw new IllegalArgumentException("An absolute path can not start by referencing a non-existent parent");
-			path = path.replaceAll("[^/]+(?<!/\\.\\.)/\\.\\./", "");
+		while (matcher.find()) {
+			String original = path;
+			path = path.replaceFirst("/[^/]+/\\.\\.(?=/|$)", matcher.regionEnd() == length ? "" : "/");
+			if (original.equals(path)) {
+				throw new IllegalArgumentException("Can not resolve relative path: " + original);
+			}
+		}
+		if (path.matches("/\\.\\.(/|$)")) {
+			throw new IllegalArgumentException("Can not resolve relative path");
 		}
 		return path;
 	}
