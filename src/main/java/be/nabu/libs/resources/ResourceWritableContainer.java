@@ -28,8 +28,9 @@ public class ResourceWritableContainer implements WritableContainer<ByteBuffer> 
 			writable.close();
 		}
 		finally {
-			if (manageResource)
-				ResourceUtils.getRoot(resource).close();
+			if (manageResource) {
+				ResourceUtils.close(resource);
+			}
 		}
 	}
 

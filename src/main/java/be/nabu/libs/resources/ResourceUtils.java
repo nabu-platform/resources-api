@@ -1,5 +1,6 @@
 package be.nabu.libs.resources;
 
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
@@ -280,5 +281,14 @@ public class ResourceUtils {
 			throw new IOException("Could not copy: " + original.getName());
 		}
 		return child;
+	}
+	
+	public static void close(Resource resource) throws IOException {
+		if (resource instanceof Closeable) {
+			((Closeable) resource).close();
+		}
+		else if (resource.getParent() != null) {
+			close(resource.getParent());
+		}
 	}
 }

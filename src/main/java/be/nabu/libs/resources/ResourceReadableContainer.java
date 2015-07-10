@@ -31,8 +31,9 @@ public class ResourceReadableContainer implements ReadableContainer<ByteBuffer> 
 			readable.close();
 		}
 		finally {
-			if (manageResource)
-				ResourceUtils.getRoot(resource).close();
+			if (manageResource) {
+				ResourceUtils.close(resource);
+			}
 		}
 	}
 
