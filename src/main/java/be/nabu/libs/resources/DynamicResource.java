@@ -2,9 +2,11 @@ package be.nabu.libs.resources;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Date;
 
 import be.nabu.libs.resources.api.ReadableResource;
 import be.nabu.libs.resources.api.ResourceContainer;
+import be.nabu.libs.resources.api.TimestampedResource;
 import be.nabu.utils.io.api.ByteBuffer;
 import be.nabu.utils.io.api.Container;
 import be.nabu.utils.io.api.DuplicatableContainer;
@@ -19,7 +21,7 @@ import be.nabu.utils.io.containers.ReadableContainerDuplicator;
  * The next you get a readable, you will get the memory duplicate
  * Requesting the readable again will also close the original one though
  */
-public class DynamicResource implements ReadableResource, Closeable {
+public class DynamicResource implements ReadableResource, Closeable, TimestampedResource {
 
 	private ReadableContainer<ByteBuffer> originalContent;
 	private String contentType;
@@ -27,6 +29,7 @@ public class DynamicResource implements ReadableResource, Closeable {
 	private Container<ByteBuffer> content;
 	private boolean alreadyRequested = false;
 	private boolean shouldClose = false;
+	private Date lastModified;
 	
 	@SuppressWarnings("unchecked")
 	public <T extends DuplicatableContainer<ByteBuffer, ? extends ReadableContainer<ByteBuffer>> & Container<ByteBuffer>> DynamicResource(ReadableContainer<ByteBuffer> originalContent, T backend, String name, String contentType, boolean shouldClose) {
@@ -74,6 +77,11 @@ public class DynamicResource implements ReadableResource, Closeable {
 			return shouldClose ? originalContent : new UncloseableReadableContainer(originalContent);
 		}
 		else {
+			// if the last modified was not set, fix it
+			// the data can no longer be updated
+			if (lastModified == null) {
+				lastModified = new Date();
+			}
 			return ((DuplicatableContainer<ByteBuffer, ? extends ReadableContainer<ByteBuffer>>) content).duplicate(true);
 		}
 	}
@@ -99,5 +107,10 @@ public class DynamicResource implements ReadableResource, Closeable {
 	@Override
 	public void close() throws IOException {
 		content.close();
+	}
+
+	@Override
+	public Date getLastModified() {
+		return lastModified == null ? new Date() : lastModified;
 	}
 }
