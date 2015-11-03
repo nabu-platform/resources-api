@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 
+import be.nabu.libs.resources.api.Resource;
 import be.nabu.libs.resources.api.ResourceResolver;
-import be.nabu.libs.resources.api.ResourceRoot;
 
 public class ResourceFactory {
 
@@ -101,7 +101,7 @@ public class ResourceFactory {
 		return resolvers;
 	}
 	
-	public ResourceRoot resolve(URI uri, Principal principal) throws IOException {
+	public Resource resolve(URI uri, Principal principal) throws IOException {
 		// it is possible to return null so for instance you might want to check if something exists and if not, create it
 		// the "mkdir()" functionality has the ability to scan further up the tree to find something
 		if (getResolvers().containsKey(uri.getScheme()))

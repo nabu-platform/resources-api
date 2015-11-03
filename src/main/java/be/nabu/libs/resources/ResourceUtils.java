@@ -16,7 +16,6 @@ import be.nabu.libs.resources.api.ReadableResource;
 import be.nabu.libs.resources.api.Resource;
 import be.nabu.libs.resources.api.ResourceContainer;
 import be.nabu.libs.resources.api.ResourceFilter;
-import be.nabu.libs.resources.api.ResourceRoot;
 import be.nabu.libs.resources.api.WritableResource;
 import be.nabu.utils.io.ContentTypeMap;
 import be.nabu.utils.io.IOUtils;
@@ -57,14 +56,9 @@ public class ResourceUtils {
 		Resource resource = ResourceFactory.getInstance().resolve(uri, principal);
 		if (resource == null)
 			throw new FileNotFoundException("Could not find the resource " + uri);
-		try {
-			if (!(resource instanceof ReadableResource))
-				throw new IOException("The resource at " + uri + " is not readable");
-			return new ResourceReadableContainer((ReadableResource) resource);
-		}
-		finally {
-			getRoot(resource).close();
-		}
+		if (!(resource instanceof ReadableResource))
+			throw new IOException("The resource at " + uri + " is not readable");
+		return new ResourceReadableContainer((ReadableResource) resource);
 	}
 	
 	public static WritableContainer<ByteBuffer> toWritableContainer(URI uri, Principal principal) throws IOException {
@@ -73,14 +67,9 @@ public class ResourceUtils {
 			resource = touch(uri, principal);
 		if (resource == null)
 			throw new FileNotFoundException("Could not find or create the resource " + uri);
-		try {
-			if (!(resource instanceof WritableResource))
-				throw new IOException("The resource at " + uri + " is not writable");
-			return new ResourceWritableContainer((WritableResource) resource);
-		}
-		finally {
-			getRoot(resource).close();
-		}
+		if (!(resource instanceof WritableResource))
+			throw new IOException("The resource at " + uri + " is not writable");
+		return new ResourceWritableContainer((WritableResource) resource);
 	}
 	
 	public static Container<ByteBuffer> toContainer(URI uri, Principal principal) throws IOException {
@@ -89,21 +78,16 @@ public class ResourceUtils {
 			resource = touch(uri, principal);
 		if (resource == null)
 			throw new FileNotFoundException("Could not find or create the resource " + uri);
-		try {
-			if (!(resource instanceof ReadableResource))
-				throw new IOException("The resource at " + uri + " is not readable");
-			if (!(resource instanceof WritableResource))
-				throw new IOException("The resource at " + uri + " is not writable");
-			// this creates a composed container but the writable will not close the container
-			// the composed container will close the writable first (to allow for flushing) so the readable should close the resource
-			return IOUtils.wrap(
-				new ResourceReadableContainer((ReadableResource) resource), 
-				new ResourceWritableContainer(((WritableResource) resource), false)
-			);
-		}
-		finally {
-			getRoot(resource).close();
-		}
+		if (!(resource instanceof ReadableResource))
+			throw new IOException("The resource at " + uri + " is not readable");
+		if (!(resource instanceof WritableResource))
+			throw new IOException("The resource at " + uri + " is not writable");
+		// this creates a composed container but the writable will not close the container
+		// the composed container will close the writable first (to allow for flushing) so the readable should close the resource
+		return IOUtils.wrap(
+			new ResourceReadableContainer((ReadableResource) resource), 
+			new ResourceWritableContainer(((WritableResource) resource), false)
+		);
 	}
 	
 	private static ResourceContainer<?> mkdir(URI uri, Principal principal, String pathToCreate) throws IOException {
@@ -195,13 +179,13 @@ public class ResourceUtils {
 			return resolve(target, path, counter + 1);
 	}
 	
-	public static ResourceRoot getRoot(Resource resource) {
-		if (resource instanceof ResourceRoot)
-			return (ResourceRoot) resource;
-		else if (resource.getParent() != null)
+	public static Resource getRoot(Resource resource) {
+		if (resource.getParent() != null) {
 			return getRoot(resource.getParent());
-		else
-			throw new IllegalStateException("The resource " + resource + " has no parent and no root");
+		}
+		else {
+			return resource;
+		}
 	}
 	
 	public static String getPath(Resource resource) {
