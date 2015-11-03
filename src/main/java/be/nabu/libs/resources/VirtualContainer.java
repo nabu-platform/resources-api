@@ -1,5 +1,7 @@
 package be.nabu.libs.resources;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,7 +11,7 @@ import be.nabu.libs.resources.api.LocatableResource;
 import be.nabu.libs.resources.api.Resource;
 import be.nabu.libs.resources.api.ResourceContainer;
 
-public class VirtualContainer<T extends Resource> implements ResourceContainer<T>, LocatableResource {
+public class VirtualContainer<T extends Resource> implements ResourceContainer<T>, LocatableResource, Closeable {
 
 	private URI uri;
 	private Map<String, T> children = new HashMap<String, T>();
@@ -54,6 +56,13 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 	
 	public void removeChild(String name) {
 		children.remove(name);
+	}
+
+	@Override
+	public void close() throws IOException {
+		for (Resource child : children.values()) {
+			ResourceUtils.close(child);
+		}
 	}
 	
 }
