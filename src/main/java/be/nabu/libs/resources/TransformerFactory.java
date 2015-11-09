@@ -9,38 +9,38 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 
-import be.nabu.libs.resources.api.Archive;
-import be.nabu.libs.resources.api.ArchiveResolver;
 import be.nabu.libs.resources.api.Resource;
+import be.nabu.libs.resources.api.Transformer;
+import be.nabu.libs.resources.api.TransformerResolver;
 
-public class ArchiveFactory {
+public class TransformerFactory {
 
-	private static ArchiveFactory instance;
+	private static TransformerFactory instance;
 	
-	public static ArchiveFactory getInstance() {
+	public static TransformerFactory getInstance() {
 		if (instance == null)
-			instance = new ArchiveFactory();
+			instance = new TransformerFactory();
 		return instance;
 	}
 	
-	private Map<String, ArchiveResolver> resolvers = new LinkedHashMap<String, ArchiveResolver>();
+	private Map<String, TransformerResolver> resolvers = new LinkedHashMap<String, TransformerResolver>();
 	
-	public void setArchiveResolver(String contentType, ArchiveResolver resolver, boolean overrideExisting) {
+	public void setTransformerResolver(String contentType, TransformerResolver resolver, boolean overrideExisting) {
 		if (overrideExisting || !resolvers.containsKey(contentType))
 			resolvers.put(contentType, resolver);
 	}
 	
-	public void addArchiveResolver(ArchiveResolver resolver) {
+	public void addTransformerResolver(TransformerResolver resolver) {
 		for (String contentType : resolver.getSupportedContentTypes())
-			setArchiveResolver(contentType, resolver, false);
+			setTransformerResolver(contentType, resolver, false);
 	}
 	
-	public void removeArchiveResolver(ArchiveResolver resolver) {
+	public void removeTransformerResolver(TransformerResolver resolver) {
 		for (String contentType : resolvers.keySet())
 			resolvers.remove(contentType);
 	}
 	
-	public ArchiveResolver getResolver(String scheme) {
+	public TransformerResolver getResolver(String scheme) {
 		return getResolvers().get(scheme);
 	}
 	
@@ -49,14 +49,14 @@ public class ArchiveFactory {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Map<String, ArchiveResolver> getResolvers() {
+	private Map<String, TransformerResolver> getResolvers() {
 		if (resolvers.isEmpty()) {
 			try {
 				// let's try this with custom service loading based on a configuration
 				Class<?> clazz = getClass().getClassLoader().loadClass("be.nabu.utils.services.ServiceLoader");
 				Method declaredMethod = clazz.getDeclaredMethod("load", Class.class);
-				for (ArchiveResolver resolver : (List<ArchiveResolver>) declaredMethod.invoke(null, ArchiveResolver.class)) {
-					addArchiveResolver(resolver);
+				for (TransformerResolver resolver : (List<TransformerResolver>) declaredMethod.invoke(null, TransformerResolver.class)) {
+					addTransformerResolver(resolver);
 				}
 			}
 			catch (ClassNotFoundException e) {
@@ -76,20 +76,20 @@ public class ArchiveFactory {
 				// ignore
 			}
 			if (resolvers.isEmpty()) {
-				ServiceLoader<ArchiveResolver> serviceLoader = ServiceLoader.load(ArchiveResolver.class);
-				for (ArchiveResolver resolver : serviceLoader) {
-					addArchiveResolver(resolver);
+				ServiceLoader<TransformerResolver> serviceLoader = ServiceLoader.load(TransformerResolver.class);
+				for (TransformerResolver resolver : serviceLoader) {
+					addTransformerResolver(resolver);
 				}
 			}
 		}
 		return resolvers;
 	}
 	
-	public <T extends Resource> Archive<T> newArchive(Resource resource) throws IOException {
+	public Transformer newArchive(Resource resource) throws IOException {
 		if (getResolvers().containsKey(resource.getContentType())) {
-			Archive<T> archive = resolvers.get(resource.getContentType()).newInstance();
-			archive.setSource(resource);
-			return archive;
+			Transformer transformer = resolvers.get(resource.getContentType()).newInstance();
+			transformer.setSource(resource);
+			return transformer;
 		}
 		else
 			throw new IllegalArgumentException("The content type " + resource.getContentType() + " has no registered archive handler");
