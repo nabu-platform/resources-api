@@ -40,8 +40,8 @@ public class ArchiveFactory {
 			resolvers.remove(contentType);
 	}
 	
-	public ArchiveResolver getResolver(String scheme) {
-		return getResolvers().get(scheme);
+	public ArchiveResolver getResolver(String contentType) {
+		return getResolvers().get(contentType);
 	}
 	
 	public Set<String> getSchemes() {

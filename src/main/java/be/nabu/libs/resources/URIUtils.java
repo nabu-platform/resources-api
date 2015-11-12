@@ -199,7 +199,17 @@ public class URIUtils {
 	}
 	
 	public static String getName(URI uri) {
-		String path = cleanPath(uri.getPath());
+		String path = uri.getPath();
+		while (path == null && uri.getSchemeSpecificPart() != null) {
+			try {
+				uri = new URI(encodeURI(uri.getSchemeSpecificPart()));
+			}
+			catch (URISyntaxException e) {
+				throw new RuntimeException(e);
+			}
+			path = uri.getPath();
+		}
+		path = cleanPath(path);
 		if (path.equals("/"))
 			return null;
 		else
