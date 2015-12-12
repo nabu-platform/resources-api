@@ -1,14 +1,18 @@
 package be.nabu.libs.resources;
 
+import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import be.nabu.libs.resources.api.LocatableResource;
 import be.nabu.libs.resources.api.ManageableContainer;
@@ -236,17 +240,34 @@ public class ResourceUtils {
 	}
 	
 	public static Resource copy(Resource original, ManageableContainer<?> target, String newName) throws IOException {
-		if (target.getChild(newName) != null) {
+		return copy(original, target, newName, false, false);
+	}
+	
+	public static Resource copy(Resource original, ManageableContainer<?> target, String newName, boolean contentsOnly, boolean overwrite) throws IOException {
+		Resource child = target.getChild(newName);
+		if (!overwrite && child != null) {
 			throw new IOException("The target '" + newName + "' already exists");
 		}
-		Resource child = target.create(newName, original.getContentType());
 		if (original instanceof ResourceContainer) {
+			if (child == null) {
+				child = contentsOnly ? target : target.create(newName, Resource.CONTENT_TYPE_DIRECTORY);
+			}
 			ManageableContainer<?> targetContainer = (ManageableContainer<?>) child;
 			for (Resource childOriginal : (ResourceContainer<?>) original) {
-				copy(childOriginal, targetContainer);
+				copy(childOriginal, targetContainer, childOriginal.getName(), false, overwrite);
 			}
 		}
 		else if (original instanceof ReadableResource) {
+			String contentType = original.getContentType();
+			if (contentType == null) {
+				contentType = URLConnection.guessContentTypeFromName(original.getName());
+				if (contentType == null) {
+					contentType = "application/octet-stream";
+				}
+			}
+			if (child == null) {
+				child = target.create(newName, contentType);
+			}
 			ReadableContainer<ByteBuffer> readable = ((ReadableResource) original).getReadable();
 			try {
 				WritableContainer<ByteBuffer> writable = new ResourceWritableContainer((WritableResource) child);
@@ -273,6 +294,42 @@ public class ResourceUtils {
 		}
 		else if (resource.getParent() != null) {
 			close(resource.getParent());
+		}
+	}
+	
+	public static void unzip(Resource zipResource, ResourceContainer<?> target) throws IOException {
+		ReadableContainer<ByteBuffer> readable = ((ReadableResource) zipResource).getReadable();
+		try {
+			unzip(new ZipInputStream(new BufferedInputStream(IOUtils.toInputStream(readable))), target);
+		}
+		finally {
+			readable.close();
+		}
+	}
+	
+	public static void unzip(ZipInputStream input, ResourceContainer<?> target) throws IOException {
+		ZipEntry entry;
+		while ((entry = input.getNextEntry()) != null) {
+			String name = entry.getName();
+			if (name.endsWith("/")) {
+				continue;
+			}
+			if (name.startsWith("/")) {
+				name = name.substring(1);
+			}
+			ResourceContainer<?> parent = name.contains("/") ? mkdirs(target, name.replaceAll("/[^/]+$", "")) : target;
+			String contentType = URLConnection.guessContentTypeFromName(name);
+			if (contentType == null) {
+				contentType = "application/octet-stream";
+			}
+			Resource create = ((ManageableContainer<?>) parent).create(name.contains("/") ? name.replaceAll(".*/([^/]+)$", "$1") : name , contentType);
+			WritableContainer<ByteBuffer> writable = ((WritableResource) create).getWritable();
+			try {
+				IOUtils.copyBytes(IOUtils.wrap(input), writable);
+			}
+			finally {
+				writable.close();
+			}
 		}
 	}
 }
