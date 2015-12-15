@@ -3,8 +3,6 @@ package be.nabu.libs.resources;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,7 +20,9 @@ public class CombinedContainer<T extends Resource> implements ResourceContainer<
 		this.parent = parent;
 		this.name = name;
 		if (containers != null) {
-			this.containers.addAll((Collection<? extends ResourceContainer<T>>) Arrays.asList(containers));
+			for (ResourceContainer<?> container : containers) {
+				this.containers.add((ResourceContainer<T>) container);
+			}
 		}
 	}
 	
