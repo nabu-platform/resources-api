@@ -61,6 +61,11 @@ public class CombinedContainer<T extends Resource> implements ResourceContainer<
 				}
 				return current == null ? null : current.next();
 			}
+
+			@Override
+			public void remove() {
+				// do nothing
+			}
 		};
 	}
 
