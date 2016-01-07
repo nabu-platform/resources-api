@@ -74,5 +74,9 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 			ResourceUtils.close(child);
 		}
 	}
-	
+
+	@Override
+	public String toString() {
+		return "virtual:" + getURI();
+	}
 }
