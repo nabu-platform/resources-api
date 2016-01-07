@@ -15,7 +15,17 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 
 	private URI uri;
 	private Map<String, T> children = new HashMap<String, T>();
+	private ResourceContainer<?> parent;
+	private String name;
 
+	public VirtualContainer(ResourceContainer<?> parent, String name) {
+		this.parent = parent;
+		this.name = name;
+		if (parent instanceof LocatableResource) {
+			uri = URIUtils.getChild(((LocatableResource) parent).getURI(), name);
+		}
+	}
+	
 	public VirtualContainer(URI uri) {
 		this.uri = uri;
 	}
@@ -27,12 +37,12 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 
 	@Override
 	public String getName() {
-		return null;
+		return name;
 	}
 
 	@Override
 	public ResourceContainer<?> getParent() {
-		return null;
+		return parent;
 	}
 
 	@Override
