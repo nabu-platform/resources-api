@@ -12,8 +12,14 @@ import java.util.regex.Pattern;
 public class URIUtils {
 	
 	public static String encodeURI(String uri) {
+		return encodeURI(uri, true);
+	}
+	
+	public static String encodeURI(String uri, boolean includeEncoded) {
 		if (uri != null) {
-			uri = uri.replace("%", "%25");
+			if (includeEncoded) {
+				uri = uri.replace("%", "%25");
+			}
 			uri = uri.replace(" ", "%20");
 			uri = uri.replace("{", "%7B");
 			uri = uri.replace("}", "%7D");
