@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import be.nabu.libs.resources.api.LocatableResource;
 import be.nabu.libs.resources.api.ManageableContainer;
@@ -294,6 +295,32 @@ public class ResourceUtils {
 		}
 		else if (resource.getParent() != null) {
 			close(resource.getParent());
+		}
+	}
+	
+	public static void zip(Resource resource, ZipOutputStream output, boolean includeRoot) throws IOException {
+		zip(resource, output, !includeRoot, null);
+	}
+	
+	private static void zip(Resource resource, ZipOutputStream output, boolean isRoot, String path) throws IOException {
+		String childPath = path == null ? resource.getName() : path + "/" + resource.getName();
+		if (resource instanceof ReadableResource) {
+			ZipEntry entry = new ZipEntry(childPath);
+			output.putNextEntry(entry);
+			ReadableContainer<ByteBuffer> readable = ((ReadableResource) resource).getReadable();
+			try {
+				IOUtils.copyBytes(readable, IOUtils.wrap(output));
+			}
+			finally {
+				readable.close();
+			}
+		}
+		if (resource instanceof ResourceContainer) {
+			for (Resource child : (ResourceContainer<?>) resource) {
+				if (!child.getName().startsWith(".")) {
+					zip(child, output, false, isRoot ? null : childPath);
+				}
+			}
 		}
 	}
 	
