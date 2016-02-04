@@ -29,14 +29,17 @@ public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 		if (!registered) {
 			synchronized(VFSURLStreamHandlerFactory.class){
 				if (!registered) {
-					// make sure the factory is instantiated and has performed the lookup
-					// the SPI implementation can not (apparently) handle the lookup during URL resolving...
-					ResourceFactory.getInstance().getSchemes();
 					URL.setURLStreamHandlerFactory(new VFSURLStreamHandlerFactory());
 					registered = true;
 				}
 			}
 		}
+	}
+	
+	public VFSURLStreamHandlerFactory() {
+		// make sure the factory is instantiated and has performed the lookup
+		// the SPI implementation can not (apparently) handle the lookup during URL resolving...
+		ResourceFactory.getInstance().getSchemes();
 	}
 	
 	@Override
