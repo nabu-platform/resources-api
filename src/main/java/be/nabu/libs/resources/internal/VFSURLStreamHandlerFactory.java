@@ -24,11 +24,7 @@ import be.nabu.utils.io.IOUtils;
 public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
 	private static boolean registered;
-	
-	static {
-		register();
-	}
-	
+
 	public static void register() {
 		if (!registered) {
 			synchronized(VFSURLStreamHandlerFactory.class){
