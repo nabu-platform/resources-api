@@ -9,6 +9,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
+import java.util.Arrays;
+import java.util.List;
 
 import be.nabu.libs.resources.ResourceFactory;
 import be.nabu.libs.resources.api.FiniteResource;
@@ -23,6 +25,8 @@ import be.nabu.utils.io.IOUtils;
  */
 public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
+	public static List<String> defaultSchemes = Arrays.asList(new String [] { "http", "https", "ftp", "jar" });
+	
 	private static boolean registered;
 
 	public static void register() {
@@ -44,7 +48,7 @@ public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 	
 	@Override
 	public URLStreamHandler createURLStreamHandler(String protocol) {
-		if (ResourceFactory.getInstance().getSchemes().contains(protocol)) {
+		if (!defaultSchemes.contains(protocol) && ResourceFactory.getInstance().getSchemes().contains(protocol)) {
 			return new URLStreamHandler() {
 				@Override
 				protected URLConnection openConnection(final URL url) throws IOException {
