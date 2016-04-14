@@ -174,19 +174,33 @@ public class URIUtils {
 	}
 	
 	public static URI getParent(URI uri) {
-		String path = cleanPath(uri.getPath());
-		if (path.equals("/") || path.isEmpty())
-			return null;
-		else
-			// first remove any trailing "/", then remove the last bit
-			path = path.replaceAll("[/]+$", "").replaceAll("/[^/]+$", "");
-		if (path.equals(""))
-			path = "/";
-		try {
-			return new URI(uri.getScheme(), uri.getHost(), path, uri.getFragment());
+		// if the path is null, we assume that you are using a URL within another URI, for example test1:test2:/path/here
+		// to fix this we get the scheme specific part
+		if (uri.getPath() == null) {
+			try {
+				URI child = new URI(uri.getSchemeSpecificPart());
+				URI childParent = getParent(child);
+				return new URI(uri.getScheme(), childParent.toString(), uri.getFragment());
+			}
+			catch (URISyntaxException e) {
+				throw new RuntimeException(e);
+			}
 		}
-		catch (URISyntaxException e) {
-			throw new RuntimeException(e);
+		else {
+			String path = cleanPath(uri.getPath());
+			if (path.equals("/") || path.isEmpty())
+				return null;
+			else
+				// first remove any trailing "/", then remove the last bit
+				path = path.replaceAll("[/]+$", "").replaceAll("/[^/]+$", "");
+			if (path.equals(""))
+				path = "/";
+			try {
+				return new URI(uri.getScheme(), uri.getHost(), path, uri.getFragment());
+			}
+			catch (URISyntaxException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 	
