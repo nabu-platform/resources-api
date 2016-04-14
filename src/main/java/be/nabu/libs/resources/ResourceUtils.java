@@ -53,6 +53,19 @@ public class ResourceUtils {
 		return child == null ? parent.create(name, ContentTypeMap.getInstance().getContentTypeFor(name)) : child;
 	}
 	
+	public static Resource touch(Resource parent, String path) throws IOException {
+		if (path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		String folderPath = path.contains("/") ? path.replaceAll("/[^/]+$", "") : "";
+		if (!folderPath.isEmpty()) {
+			parent = mkdirs(parent, folderPath);
+		}
+		String name = path.substring(folderPath.length());
+		Resource child = ((ResourceContainer<?>) parent).getChild(name);
+		return child == null ? ((ManageableContainer<?>) parent).create(name, ContentTypeMap.getInstance().getContentTypeFor(name)) : child;
+	}
+	
 	public static ResourceContainer<?> mkdir(URI uri, Principal principal) throws IOException {
 		return mkdir(uri, principal, null);
 	}
