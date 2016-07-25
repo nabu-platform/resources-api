@@ -76,7 +76,6 @@ public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 							}
 							@Override
 							public InputStream getInputStream() throws IOException {
-								System.out.println(resource);
 								if (!(resource instanceof ReadableResource)) {
 									throw new IOException("The resource can not be read from: " + url);
 								}
