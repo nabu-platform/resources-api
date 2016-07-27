@@ -123,7 +123,7 @@ public class URIUtils {
 	public static Map<String, List<String>> getQueryProperties(URI uri) {
 		Map<String, List<String>> parameters = new HashMap<String, List<String>>();
 		if (uri.getQuery() != null) {
-			for (String part : uri.getQuery().split("[\\s]*&[\\s]*")) {
+			for (String part : uri.getRawQuery().split("[\\s]*&[\\s]*")) {
 				int index = part.indexOf('=');
 				String key = null;
 				String value = null;
