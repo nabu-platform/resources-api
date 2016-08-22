@@ -133,6 +133,8 @@ public class URIUtils {
 					key = part.substring(0, index).trim();
 					value = decodeURIComponent(URLEncodingToURIEncoding(part.substring(index + 1).trim()));
 				}
+				// decode the key as well in case it contains special characters
+				key = decodeURIComponent(URLEncodingToURIEncoding(key));
 				if (!parameters.containsKey(key))
 					parameters.put(key, new ArrayList<String>());
 				if (value != null)
