@@ -212,6 +212,9 @@ public class URIUtils {
 			path += name;
 		else
 			path += "/" + name.replaceAll("^[/]+", "");
+		if (!path.startsWith("/")) {
+			path = "/" + path;
+		}
 		try {
 			return new URI(parent.getScheme(), parent.getAuthority(), path, parent.getQuery(), parent.getFragment());
 		}
