@@ -258,20 +258,25 @@ public class ResourceUtils {
 	}
 	
 	public static Resource copy(Resource original, ManageableContainer<?> target, String newName, boolean contentsOnly, boolean overwrite) throws IOException {
-		Resource child = target.getChild(newName);
-		if (!overwrite && child != null) {
-			throw new IOException("The target '" + newName + "' already exists");
+		if (newName == null && !contentsOnly) {
+			throw new IllegalArgumentException("Need a name");
 		}
+		Resource result;
 		if (original instanceof ResourceContainer) {
-			if (child == null) {
-				child = contentsOnly ? target : target.create(newName, Resource.CONTENT_TYPE_DIRECTORY);
+			ManageableContainer<?> targetDirectory = (ManageableContainer<?>) (contentsOnly ? target : target.getChild(newName));
+			if (targetDirectory == null) {
+				targetDirectory = (ManageableContainer<?>) (contentsOnly ? target : target.create(newName, Resource.CONTENT_TYPE_DIRECTORY));
 			}
-			ManageableContainer<?> targetContainer = (ManageableContainer<?>) child;
 			for (Resource childOriginal : (ResourceContainer<?>) original) {
-				copy(childOriginal, targetContainer, childOriginal.getName(), false, overwrite);
+				copy(childOriginal, targetDirectory, childOriginal.getName(), false, overwrite);
 			}
+			result = targetDirectory;
 		}
 		else if (original instanceof ReadableResource) {
+			Resource child = target.getChild(newName);
+			if (!overwrite && child != null) {
+				throw new IOException("The target '" + newName + "' already exists");
+			}
 			String contentType = original.getContentType();
 			if (contentType == null) {
 				contentType = URLConnection.guessContentTypeFromName(original.getName());
@@ -295,11 +300,12 @@ public class ResourceUtils {
 			finally {
 				readable.close();
 			}
+			result = child;
 		}
 		else {
 			throw new IOException("Could not copy: " + original.getName());
 		}
-		return child;
+		return result;
 	}
 	
 	public static void close(Resource resource) throws IOException {
