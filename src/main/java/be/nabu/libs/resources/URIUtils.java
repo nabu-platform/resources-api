@@ -20,6 +20,9 @@ public class URIUtils {
 			if (includeEncoded) {
 				uri = uri.replace("%", "%25");
 			}
+			else {
+				uri = uri.replaceAll("%(?![0-9]{2})", "%25");
+			}
 			uri = uri.replace(" ", "%20");
 			uri = uri.replace("{", "%7B");
 			uri = uri.replace("}", "%7D");
@@ -30,6 +33,9 @@ public class URIUtils {
 			// as per 2.4.3 of RFC 2396 characters "`" (%60) and "\" (%5C) should also be encoded
 			uri = uri.replace("\\", "%5C");
 			uri = uri.replace("`", "%60");
+			uri = uri.replace(">", "%3E");
+			uri = uri.replace("<", "%3C");
+			uri = uri.replace("\"", "%22");
 		}
 		return uri;
 	}
@@ -44,6 +50,9 @@ public class URIUtils {
 			uri = uri.replace("%5B", "[");
 			uri = uri.replace("%5D", "]");
 			uri = uri.replace("%25", "%");
+			uri = uri.replace("%3E", ">");
+			uri = uri.replace("%3C", "<");
+			uri = uri.replace("%22", "\"");
 		}
 		return uri;
 	}
