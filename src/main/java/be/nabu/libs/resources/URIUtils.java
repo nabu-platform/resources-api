@@ -21,7 +21,7 @@ public class URIUtils {
 				uri = uri.replace("%", "%25");
 			}
 			else {
-				uri = uri.replaceAll("%(?![0-9]{2})", "%25");
+				uri = uri.replaceAll("%(?![0-9A-F]{2})", "%25");
 			}
 			uri = uri.replace(" ", "%20");
 			uri = uri.replace("{", "%7B");
