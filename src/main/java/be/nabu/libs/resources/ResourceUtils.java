@@ -62,6 +62,12 @@ public class ResourceUtils {
 			parent = mkdirs(parent, folderPath);
 		}
 		String name = path.substring(folderPath.length());
+		if (name.startsWith("/")) {
+			name = name.substring(1);
+		}
+		if (name.isEmpty()) {
+			return parent;
+		}
 		Resource child = ((ResourceContainer<?>) parent).getChild(name);
 		return child == null ? ((ManageableContainer<?>) parent).create(name, ContentTypeMap.getInstance().getContentTypeFor(name)) : child;
 	}
