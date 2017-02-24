@@ -15,13 +15,19 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import be.nabu.libs.resources.api.AccessTrackingResource;
+import be.nabu.libs.resources.api.AppendableResource;
+import be.nabu.libs.resources.api.FiniteResource;
 import be.nabu.libs.resources.api.LocatableResource;
 import be.nabu.libs.resources.api.ManageableContainer;
 import be.nabu.libs.resources.api.ReadableResource;
 import be.nabu.libs.resources.api.Resource;
 import be.nabu.libs.resources.api.ResourceContainer;
 import be.nabu.libs.resources.api.ResourceFilter;
+import be.nabu.libs.resources.api.ResourceProperties;
+import be.nabu.libs.resources.api.TimestampedResource;
 import be.nabu.libs.resources.api.WritableResource;
+import be.nabu.libs.resources.impl.ResourcePropertiesImpl;
 import be.nabu.utils.io.ContentTypeMap;
 import be.nabu.utils.io.IOUtils;
 import be.nabu.utils.io.api.ByteBuffer;
@@ -31,6 +37,27 @@ import be.nabu.utils.io.api.WritableContainer;
 
 public class ResourceUtils {
 
+	public static ResourceProperties properties(Resource resource) {
+		ResourcePropertiesImpl properties = new ResourcePropertiesImpl();
+		properties.setName(resource.getName());
+		properties.setContentType(resource.getContentType());
+		properties.setListable(resource instanceof ResourceContainer);
+		properties.setReadable(resource instanceof ReadableResource);
+		properties.setWritable(resource instanceof WritableResource);
+		properties.setAppendable(resource instanceof AppendableResource);
+		if (resource instanceof FiniteResource) {
+			properties.setSize(((FiniteResource) resource).getSize());
+		}
+		if (resource instanceof TimestampedResource) {
+			properties.setLastModified(((TimestampedResource) resource).getLastModified());
+		}
+		if (resource instanceof AccessTrackingResource) {
+			properties.setLastAccessed(((AccessTrackingResource) resource).getLastAccessed());
+		}
+		properties.setUri(getURI(resource));
+		return properties;
+	}
+	
 	public static ReadableResource wrapReadable(byte [] bytes, int offset, int length) {
 		return new ReadableByteResource(bytes, offset, length);
 	}
