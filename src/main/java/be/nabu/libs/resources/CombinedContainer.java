@@ -69,15 +69,31 @@ public class CombinedContainer<T extends Resource> implements ResourceContainer<
 		};
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public T getChild(String name) {
+		List<ResourceContainer<?>> result = new ArrayList<ResourceContainer<?>>();
 		for (ResourceContainer<T> container : containers) {
 			T child = container.getChild(name);
 			if (child != null) {
-				return child;
+				if (child instanceof ResourceContainer) {
+					result.add((ResourceContainer<?>) child);
+				}
+				// if theres is a file with that name, it gets precedence
+				else {
+					return child;
+				}
 			}
 		}
-		return null;
+		if (result.isEmpty()) {
+			return null;
+		}
+		else if (result.size() == 1) {
+			return (T) result.get(0);
+		}
+		else {
+			return (T) new CombinedContainer<Resource>(this, name, result.toArray(new ResourceContainer[result.size()]));
+		}
 	}
 
 	@Override
