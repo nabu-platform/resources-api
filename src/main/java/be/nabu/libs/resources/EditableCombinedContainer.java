@@ -35,4 +35,9 @@ public class EditableCombinedContainer<T extends Resource> extends CombinedConta
 		result.addAll(Arrays.asList(containers));
 		return result.toArray(new ResourceContainer[0]);
 	}
+
+	public ManageableContainer<?> getMainContainer() {
+		return mainContainer;
+	}
+	
 }

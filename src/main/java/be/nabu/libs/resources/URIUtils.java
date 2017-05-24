@@ -1,7 +1,10 @@
 package be.nabu.libs.resources;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +13,27 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class URIUtils {
+	
+	public static String encodeURL(String uri) {
+		// the standard (since 2005) says that we should use UTF-8 for this
+		// before that it is a bit vague as to which encoding we should use
+		// if you need a specific encoding you can always call it directly
+		try {
+			return URLEncoder.encode(uri, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public static String decodeURL(String uri) {
+		try {
+			return URLDecoder.decode(uri, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	public static String encodeURI(String uri) {
 		return encodeURI(uri, true);
@@ -58,8 +82,12 @@ public class URIUtils {
 	}
 	
 	public static String encodeURIComponent(String uriComponent) {
+		return encodeURIComponent(uriComponent, true);
+	}
+	
+	public static String encodeURIComponent(String uriComponent, boolean includeEncoded) {
 		if (uriComponent != null) {
-			uriComponent = encodeURI(uriComponent);
+			uriComponent = encodeURI(uriComponent, includeEncoded);
 			uriComponent = uriComponent.replace("/", "%2F");
 			uriComponent = uriComponent.replace(":", "%3A");
 			uriComponent = uriComponent.replace("?", "%3F");

@@ -18,6 +18,8 @@ public class ResourceFactory {
 
 	private static ResourceFactory instance;
 	
+	private String defaultScheme = System.getProperty("be.nabu.libs.resources.defaultScheme", "file");
+	
 	public static ResourceFactory getInstance() {
 		if (instance == null) {
 			synchronized(ResourceFactory.class) {
@@ -106,6 +108,8 @@ public class ResourceFactory {
 		// the "mkdir()" functionality has the ability to scan further up the tree to find something
 		if (getResolvers().containsKey(uri.getScheme()))
 			return getResolvers().get(uri.getScheme()).getResource(uri, principal);
+		else if (getResolvers().containsKey(defaultScheme)) 
+			return getResolvers().get(defaultScheme).getResource(uri, principal);
 		else
 			throw new IllegalArgumentException("The scheme " + uri.getScheme() + " has no registered handler");
 	}

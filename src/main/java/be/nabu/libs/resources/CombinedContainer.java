@@ -95,6 +95,27 @@ public class CombinedContainer<T extends Resource> implements ResourceContainer<
 			return (T) new CombinedContainer<Resource>(this, name, result.toArray(new ResourceContainer[result.size()]));
 		}
 	}
+	
+	public void remove(ResourceContainer<?> container) {
+		if (containers.contains(container)) {
+			List<ResourceContainer<T>> newContainers = new ArrayList<ResourceContainer<T>>(containers);
+			newContainers.remove(container);
+			containers = newContainers;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void add(ResourceContainer<?> container) {
+		if (!containers.contains(container)) {
+			List<ResourceContainer<T>> newContainers = new ArrayList<ResourceContainer<T>>(containers);
+			newContainers.add((ResourceContainer<T>) container);
+			containers = newContainers;
+		}
+	}
+	
+	public List<ResourceContainer<T>> getContainers() {
+		return new ArrayList<ResourceContainer<T>>(containers);
+	}
 
 	@Override
 	public void close() throws IOException {
