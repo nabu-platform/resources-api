@@ -257,7 +257,7 @@ public class ResourceUtils {
 	
 	public static URI getURI(Resource resource) {
 		if (resource instanceof LocatableResource)
-			return ((LocatableResource) resource).getURI();
+			return ((LocatableResource) resource).getUri();
 		else if (resource != null && resource.getParent() != null) {
 			URI parent = getURI(resource.getParent());
 			if (parent != null) {

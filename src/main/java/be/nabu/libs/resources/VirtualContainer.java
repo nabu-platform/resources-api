@@ -22,7 +22,7 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 		this.parent = parent;
 		this.name = name;
 		if (parent instanceof LocatableResource) {
-			uri = URIUtils.getChild(((LocatableResource) parent).getURI(), name);
+			uri = URIUtils.getChild(((LocatableResource) parent).getUri(), name);
 		}
 	}
 	
@@ -56,7 +56,7 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 	}
 
 	@Override
-	public URI getURI() {
+	public URI getUri() {
 		return uri;
 	}
 	
@@ -77,6 +77,6 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 
 	@Override
 	public String toString() {
-		return "virtual:" + getURI();
+		return "virtual:" + getUri();
 	}
 }

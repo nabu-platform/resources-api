@@ -28,6 +28,12 @@ public class URIUtils {
 	
 	public static String decodeURL(String uri) {
 		try {
+			// if you run this code:
+			// System.out.println(URLDecoder.decode("abc%00de", "UTF-8"));
+			// it will output "abc"
+			if (uri.contains("%00")) {
+				throw new RuntimeException("Unsafe string for decoding");
+			}
 			return URLDecoder.decode(uri, "UTF-8");
 		}
 		catch (UnsupportedEncodingException e) {
