@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 
 public class URIUtils {
 	
+	private static boolean useJavaURLEncoding = Boolean.parseBoolean(System.getProperty("nabu.url.useJavaEncoding", "true"));
+	
 	public static String encodeURL(String uri) {
 		// the standard (since 2005) says that we should use UTF-8 for this
 		// before that it is a bit vague as to which encoding we should use
@@ -174,10 +176,14 @@ public class URIUtils {
 					key = part.trim();
 				else {
 					key = part.substring(0, index).trim();
-					value = decodeURIComponent(URLEncodingToURIEncoding(part.substring(index + 1).trim()));
+					value = useJavaURLEncoding
+						? decodeURL(part.substring(index + 1).trim())
+						: decodeURIComponent(URLEncodingToURIEncoding(part.substring(index + 1).trim()));
 				}
 				// decode the key as well in case it contains special characters
-				key = decodeURIComponent(URLEncodingToURIEncoding(key));
+				key = useJavaURLEncoding
+					? decodeURL(key)
+					: decodeURIComponent(URLEncodingToURIEncoding(key));
 				if (!parameters.containsKey(key))
 					parameters.put(key, new ArrayList<String>());
 				if (value != null)
