@@ -1,6 +1,9 @@
 package be.nabu.libs.resources.api;
 
-public interface Resource {
+import java.io.Closeable;
+import java.io.IOException;
+
+public interface Resource extends Closeable {
 	
 	public static final String CONTENT_TYPE_DIRECTORY = "application/directory";
 	
@@ -21,4 +24,8 @@ public interface Resource {
 	 * @return
 	 */
 	public ResourceContainer<?> getParent();
+	
+	public default void close() throws IOException {
+		// do nothing
+	}
 }
