@@ -106,9 +106,9 @@ public class ResourceUtils {
 	public static ReadableContainer<ByteBuffer> toReadableContainer(URI uri, Principal principal) throws IOException {
 		Resource resource = ResourceFactory.getInstance().resolve(uri, principal);
 		if (resource == null)
-			throw new FileNotFoundException("Could not find the resource " + uri);
+			throw new FileNotFoundException("Could not find the resource " + cleanForLogging(uri));
 		if (!(resource instanceof ReadableResource))
-			throw new IOException("The resource at " + uri + " is not readable");
+			throw new IOException("The resource at " + cleanForLogging(uri) + " is not readable");
 		return new ResourceReadableContainer((ReadableResource) resource);
 	}
 	
@@ -117,10 +117,19 @@ public class ResourceUtils {
 		if (resource == null)
 			resource = touch(uri, principal);
 		if (resource == null)
-			throw new FileNotFoundException("Could not find or create the resource " + uri);
+			throw new FileNotFoundException("Could not find or create the resource " + cleanForLogging(uri));
 		if (!(resource instanceof WritableResource))
-			throw new IOException("The resource at " + uri + " is not writable");
+			throw new IOException("The resource at " + cleanForLogging(uri) + " is not writable");
 		return new ResourceWritableContainer((WritableResource) resource);
+	}
+	
+	public static URI cleanForLogging(URI uri) {
+		try {
+			return new URI(uri.getScheme(), uri.getUserInfo() == null ? null : uri.getUserInfo().replaceAll(":.*", ":***"), uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+		}
+		catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public static Container<ByteBuffer> toContainer(URI uri, Principal principal) throws IOException {
@@ -128,11 +137,11 @@ public class ResourceUtils {
 		if (resource == null)
 			resource = touch(uri, principal);
 		if (resource == null)
-			throw new FileNotFoundException("Could not find or create the resource " + uri);
+			throw new FileNotFoundException("Could not find or create the resource " + cleanForLogging(uri));
 		if (!(resource instanceof ReadableResource))
-			throw new IOException("The resource at " + uri + " is not readable");
+			throw new IOException("The resource at " + cleanForLogging(uri) + " is not readable");
 		if (!(resource instanceof WritableResource))
-			throw new IOException("The resource at " + uri + " is not writable");
+			throw new IOException("The resource at " + cleanForLogging(uri) + " is not writable");
 		// this creates a composed container but the writable will not close the container
 		// the composed container will close the writable first (to allow for flushing) so the readable should close the resource
 		return IOUtils.wrap(
@@ -145,7 +154,7 @@ public class ResourceUtils {
 		Resource resource = ResourceFactory.getInstance().resolve(uri, principal);
 		if (resource != null) {
 			if (!(resource instanceof ResourceContainer))
-				throw new IOException("The resource " + uri + " already exists and is not a container");
+				throw new IOException("The resource " + cleanForLogging(uri) + " already exists and is not a container");
 			else {
 				if (pathToCreate == null)
 					return (ResourceContainer<?>) resource;
@@ -158,7 +167,7 @@ public class ResourceUtils {
 			pathToCreate = URIUtils.getName(uri) + (pathToCreate == null ? "" : "/" + pathToCreate);
 			
 			if (parent == null)
-				throw new IOException("Could not find parent to " + uri + ", can not create child " + pathToCreate);
+				throw new IOException("Could not find parent to " + cleanForLogging(uri) + ", can not create child " + pathToCreate);
 			
 			return mkdir(parent, principal, pathToCreate);
 		}

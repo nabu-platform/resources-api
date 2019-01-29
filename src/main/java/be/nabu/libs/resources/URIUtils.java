@@ -247,7 +247,7 @@ public class URIUtils {
 			if (path.equals(""))
 				path = "/";
 			try {
-				return new URI(uri.getScheme(), uri.getHost(), path, uri.getFragment());
+				return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, uri.getQuery(), uri.getFragment());
 			}
 			catch (URISyntaxException e) {
 				throw new RuntimeException(e);
