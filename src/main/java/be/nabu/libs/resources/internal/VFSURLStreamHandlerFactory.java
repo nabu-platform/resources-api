@@ -25,19 +25,26 @@ import be.nabu.utils.io.IOUtils;
  */
 public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
+	// for some reason javafx sound can't handle vfs file, so we can set this to use native file access
+	private boolean useNativeFile = false;
 	public static List<String> defaultSchemes = Arrays.asList(new String [] { "http", "https", "ftp", "jar" });
 	
 	private static boolean registered;
 
-	public static void register() {
+	public static void register(boolean useNativeFile) {
 		if (!registered) {
 			synchronized(VFSURLStreamHandlerFactory.class){
 				if (!registered) {
-					URL.setURLStreamHandlerFactory(new VFSURLStreamHandlerFactory());
+					VFSURLStreamHandlerFactory factory = new VFSURLStreamHandlerFactory();
+					factory.setUseNativeFile(useNativeFile);
+					URL.setURLStreamHandlerFactory(factory);
 					registered = true;
 				}
 			}
 		}
+	}
+	public static void register() {
+		register(false);
 	}
 	
 	public VFSURLStreamHandlerFactory() {
@@ -48,7 +55,7 @@ public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 	
 	@Override
 	public URLStreamHandler createURLStreamHandler(String protocol) {
-		if (!defaultSchemes.contains(protocol) && ResourceFactory.getInstance().getSchemes().contains(protocol)) {
+		if (!defaultSchemes.contains(protocol) && (!useNativeFile || !protocol.equals("file")) && ResourceFactory.getInstance().getSchemes().contains(protocol)) {
 			return new URLStreamHandler() {
 				@Override
 				protected URLConnection openConnection(final URL url) throws IOException {
@@ -100,4 +107,11 @@ public class VFSURLStreamHandlerFactory implements URLStreamHandlerFactory {
 		return null;
 	}
 
+	public boolean isUseNativeFile() {
+		return useNativeFile;
+	}
+
+	public void setUseNativeFile(boolean useNativeFile) {
+		this.useNativeFile = useNativeFile;
+	}
 }
