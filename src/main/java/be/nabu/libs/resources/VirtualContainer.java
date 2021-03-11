@@ -79,4 +79,8 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 	public String toString() {
 		return "virtual:" + getUri();
 	}
+	
+	public void clear() {
+		children.clear();
+	}
 }
