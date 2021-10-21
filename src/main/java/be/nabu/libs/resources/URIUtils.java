@@ -256,7 +256,7 @@ public class URIUtils {
 	}
 	
 	public static URI getChild(URI parent, String name) {
-		String path = cleanPath(parent.getPath());
+		String path = parent.getPath() == null ? "/" : cleanPath(parent.getPath());
 		if (path.equals("/") || path.isEmpty())
 			path += name;
 		else

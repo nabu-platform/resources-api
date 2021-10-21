@@ -11,6 +11,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -38,6 +39,10 @@ import be.nabu.utils.io.api.WritableContainer;
 public class ResourceUtils {
 
 	public static ResourceProperties properties(Resource resource) {
+		return properties(resource, null);
+	}
+	
+	public static ResourceProperties properties(Resource resource, URI parent) {
 		ResourcePropertiesImpl properties = new ResourcePropertiesImpl();
 		properties.setName(resource.getName());
 		properties.setContentType(resource.getContentType());
@@ -54,7 +59,12 @@ public class ResourceUtils {
 		if (resource instanceof AccessTrackingResource) {
 			properties.setLastAccessed(((AccessTrackingResource) resource).getLastAccessed());
 		}
-		properties.setUri(getURI(resource));
+		if (parent != null) {
+			properties.setUri(URIUtils.getChild(parent, resource.getName()));
+		}
+		else {
+			properties.setUri(getURI(resource));
+		}
 		return properties;
 	}
 	
@@ -359,11 +369,15 @@ public class ResourceUtils {
 		}
 	}
 	
-	public static void zip(Resource resource, ZipOutputStream output, boolean includeRoot) throws IOException {
-		zip(resource, output, !includeRoot, null);
+	public static void zip(Resource resource, ZipOutputStream output, boolean includeRoot, Predicate<Resource> acceptor) throws IOException {
+		zip(resource, output, !includeRoot, null, acceptor);
 	}
 	
-	private static void zip(Resource resource, ZipOutputStream output, boolean isRoot, String path) throws IOException {
+	public static void zip(Resource resource, ZipOutputStream output, boolean includeRoot) throws IOException {
+		zip(resource, output, !includeRoot, null, null);
+	}
+	
+	private static void zip(Resource resource, ZipOutputStream output, boolean isRoot, String path, Predicate<Resource> acceptor) throws IOException {
 		String childPath = path == null ? resource.getName() : path + "/" + resource.getName();
 		if (resource instanceof ReadableResource) {
 			ZipEntry entry = new ZipEntry(childPath);
@@ -378,8 +392,12 @@ public class ResourceUtils {
 		}
 		if (resource instanceof ResourceContainer) {
 			for (Resource child : (ResourceContainer<?>) resource) {
+				// if we don't accept it, don't recurse
+				if (acceptor != null && !acceptor.test(child)) {
+					continue;
+				}
 				if (!child.getName().startsWith(".")) {
-					zip(child, output, false, isRoot ? null : childPath);
+					zip(child, output, false, isRoot ? null : childPath, acceptor);
 				}
 			}
 		}
