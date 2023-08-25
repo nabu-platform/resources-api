@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URLConnection;
 import java.security.Principal;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 
+import be.nabu.libs.resources.api.Archive;
+import be.nabu.libs.resources.api.ArchiveResolver;
 import be.nabu.libs.resources.api.Resource;
 import be.nabu.libs.resources.api.ResourceResolver;
 
@@ -104,14 +107,40 @@ public class ResourceFactory {
 	}
 	
 	public Resource resolve(URI uri, Principal principal) throws IOException {
+		Resource result;
 		// it is possible to return null so for instance you might want to check if something exists and if not, create it
 		// the "mkdir()" functionality has the ability to scan further up the tree to find something
 		if (getResolvers().containsKey(uri.getScheme()))
-			return getResolvers().get(uri.getScheme()).getResource(uri, principal);
+			result = getResolvers().get(uri.getScheme()).getResource(uri, principal);
 		else if (getResolvers().containsKey(defaultScheme)) 
-			return getResolvers().get(defaultScheme).getResource(uri, principal);
+			result = getResolvers().get(defaultScheme).getResource(uri, principal);
 		else
 			throw new IllegalArgumentException("The scheme " + uri.getScheme() + " has no registered handler");
+		URI archiveUri = uri;
+		String childPath = null;
+		// we could not resolve it, let's check if we have an archive along the way
+		// to detect archives, we need at least a content type, which in turn requires an extension to guesstimate
+		try {
+			// TODO: put this in a while loop, move the archiveURI to test multiple paths
+			if (result == null && archiveUri != null && archiveUri.getPath() != null && archiveUri.getPath().matches(".*/[^/]+\\.[^/]+/.*")) {
+				String resourceName = uri.getPath().replaceFirst("^.*/[^/]+\\.[^/]+/(.*)$", "$1");
+				String parentPath = uri.getPath().replaceFirst("^(.*/[^/]+\\.[^/]+)/.*$", "$1");
+				uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), parentPath, uri.getQuery(), uri.getFragment());
+				childPath = childPath == null ? resourceName : childPath + "/" + resourceName;
+				String contentType = URLConnection.guessContentTypeFromName(parentPath);
+				ArchiveResolver resolver = ArchiveFactory.getInstance().getResolver(contentType);
+				if (resolver != null) {
+					Resource archiveResource = resolve(uri, principal);
+					Archive<Resource> archive = resolver.newInstance();
+					archive.setSource(archiveResource);
+					result = ResourceUtils.resolve(archive, childPath);
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return result;
 	}
 	
 	@SuppressWarnings("unused")
