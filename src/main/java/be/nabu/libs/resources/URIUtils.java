@@ -93,6 +93,92 @@ public class URIUtils {
 		return encodeURIComponent(uriComponent, true);
 	}
 	
+	public static URI buildUri(String scheme, String userInfo, String authority, String host, Integer port, String path, String query, String fragment) {
+		StringBuilder builder = new StringBuilder();
+		if (scheme != null) {
+			builder.append(scheme + ":");
+		}
+		if (userInfo != null || authority != null || host != null) {
+			builder.append("//");
+		}
+		if (userInfo != null) {
+			builder.append(URIUtils.encodeURIComponent(userInfo) + "@");
+		}
+		if (host != null) {
+			builder.append(host);
+			if (port != null && port >= 0) {
+				builder.append(":" + port);
+			}
+		}
+		else if (authority != null) {
+			builder.append(authority);
+		}
+		if (path != null) {
+			// already encode most of it
+			path = URIUtils.encodeURI(path);
+			/**
+			 * @2023-09-26
+			 * 
+			 * if we have nothing so far, we CAN have a relative path
+			 * however, that relative path must NOT have a ":" in the first part
+			 * 
+			 * https://www.rfc-editor.org/rfc/rfc3986.html:
+			 * 
+			 * In addition, a URI reference (Section 4.1) may be a relative-path reference, in which case the first path segment cannot contain a colon (":") character.
+			 * 
+			 * This works:
+			 * 
+			 * uri = new URI("test :this.pdf".replaceAll(":", "%3A").replaceAll(" ", "%20"));
+			 * 
+			 * This does not work:
+			 * 
+			 * URI uri = new URI(
+					null,
+					null,
+					null,
+					-1,
+					"test :this.pdf",
+					null,
+					null
+				);
+				
+				This means we need to identify when we have a relative path uri with a : in the first part and encode it explicitly
+			 */
+			if (builder.toString().isEmpty() && !path.startsWith("/")) {
+				int index = path.indexOf(':');
+				if (index >= 0) {
+					int slashIndex = path.indexOf('/');
+					// if we don't have a slash, we need to encode all ":"
+					if (slashIndex < 0) {
+						path = path.replace(":", "%3A");
+					}
+					// if our first slash is after the ":", we need to encode all the ":" before that first slash
+					if (slashIndex > index) {
+						path = path.substring(0, slashIndex).replace(":", "%3A") + path.substring(slashIndex);
+					}
+				}
+			}
+			// if we have anything BEFORE the path, we need to add a leading "/", no relative paths allowed
+			else if (!builder.toString().isEmpty() && !path.startsWith("/")) {
+				path = "/" + path;
+			}
+			builder.append(path);
+		}
+		if (query != null) {
+			builder.append("?" + URIUtils.encodeURI(query));
+		}
+		if (fragment != null) {
+			builder.append("#" + URIUtils.encodeURI(fragment));
+		}
+		try {
+			return new URI(builder.toString());
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
 	public static String encodeURIComponent(String uriComponent, boolean includeEncoded) {
 		if (uriComponent != null) {
 			uriComponent = encodeURI(uriComponent, includeEncoded);

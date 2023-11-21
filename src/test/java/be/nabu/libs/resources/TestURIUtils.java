@@ -47,4 +47,10 @@ public class TestURIUtils extends TestCase {
 		assertNotNull(URIUtils.getParent(new URI("file:/randomelement")));
 		assertEquals(new URI("file:/"), URIUtils.getParent(new URI("file:/randomelement")));
 	}
+	
+	public void testUriBuilding() {
+		assertEquals("test :this.pdf", URIUtils.buildUri(null, null, null, null, null, "test :this.pdf", null, null).getPath());
+		assertEquals("http://www.google.com", URIUtils.buildUri("http", null, null, "www.google.com", null, null, null, null).toString());
+		assertEquals("http://www.google.com:80/check/this?q=test", URIUtils.buildUri("http", null, null, "www.google.com", 80, "/check/this", "q=test", null).toString());
+	}
 }
