@@ -42,7 +42,7 @@ public class URIUtils {
 			throw new RuntimeException(e);
 		}
 	}
-	
+	// this is aimed at encoding only enough to construct an URI object. when dealing with ascii protocols like HTTP, additional encoding might be necessary. it is advised to use new URI(...).toASCIIString();
 	public static String encodeURI(String uri) {
 		return encodeURI(uri, true);
 	}
