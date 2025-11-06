@@ -219,7 +219,7 @@ public class ResourceUtils {
 			Resource child = resource.getChild(path[counter]);
 			if (child == null) {
 				if (!(resource instanceof ManageableContainer))
-					throw new IOException("Can not manage " + getPath(resource) + ", failed to mkdirs()");
+					throw new IOException("Can not manage " + getPath(resource) + ", failed to mkdirs() and resource not found: " + path[counter]);
 				child = ((ManageableContainer<?>) resource).create(path[counter], Resource.CONTENT_TYPE_DIRECTORY);
 			}
 			if (!(child instanceof ResourceContainer))

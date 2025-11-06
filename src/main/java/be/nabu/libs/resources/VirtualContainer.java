@@ -45,6 +45,7 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 	
 	public VirtualContainer(URI uri) {
 		this.uri = uri;
+		this.name = URIUtils.getName(uri);
 	}
 	
 	@Override
