@@ -21,6 +21,7 @@ import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLConnection;
@@ -45,6 +46,7 @@ import be.nabu.libs.resources.api.ResourceFilter;
 import be.nabu.libs.resources.api.ResourceProperties;
 import be.nabu.libs.resources.api.TimestampedResource;
 import be.nabu.libs.resources.api.WritableResource;
+import be.nabu.libs.resources.impl.ResourceIgnoreCalculator;
 import be.nabu.libs.resources.impl.ResourcePropertiesImpl;
 import be.nabu.utils.io.ContentTypeMap;
 import be.nabu.utils.io.IOUtils;
@@ -57,6 +59,42 @@ public class ResourceUtils {
 
 	public static ResourceProperties properties(Resource resource) {
 		return properties(resource, null);
+	}
+	
+	public static boolean shouldIgnore(ResourceContainer<?> container, String childName) {
+		return !ResourceIgnoreCalculator.accept(container, childName);
+	}
+	
+	public static List<String> parseIgnoreRules(InputStream input) {
+		List<String> ignoreRules = new ArrayList<>();
+		if (input != null) {
+			ReadableContainer<ByteBuffer> readable = null;
+			try {
+				readable = IOUtils.wrap(input);
+				byte[] bytes = IOUtils.toBytes(readable);
+				for (String line : new String(bytes).split("\n")) {
+					// you can add comments
+					if (line.startsWith("#")) {
+						continue;
+					}
+					ignoreRules.add(line.trim());
+				}
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			finally {
+				if (readable != null) {
+					try {
+						readable.close();
+					}
+					catch (Exception e) {
+						// ignore....
+					}
+				}
+			}
+		}
+		return ignoreRules;
 	}
 	
 	public static ResourceProperties properties(Resource resource, URI parent) {

@@ -17,6 +17,9 @@
 
 package be.nabu.libs.resources.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This interface implements Iterable instead of using collections in order to allow lazy access and local optimization.
  * For example when browsing a large file directory in java 7 you can actually iterate over all the files instead of waiting ages for the list to build.
@@ -39,4 +42,11 @@ public interface ResourceContainer<T extends Resource> extends Resource, Iterabl
 	 */
 	public T getChild(String name);
 	
+	public default List<String> getIgnoreRules() {
+		return new ArrayList<String>();
+	}
+	
+	public default String getContentType() {
+		return Resource.CONTENT_TYPE_DIRECTORY;
+	}
 }

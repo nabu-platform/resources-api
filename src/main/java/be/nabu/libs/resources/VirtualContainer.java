@@ -20,8 +20,10 @@ package be.nabu.libs.resources;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import be.nabu.libs.resources.api.LocatableResource;
@@ -34,6 +36,7 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 	private Map<String, T> children = new HashMap<String, T>();
 	private ResourceContainer<?> parent;
 	private String name;
+	private List<String> ignoreRules = new ArrayList<String>();
 
 	public VirtualContainer(ResourceContainer<?> parent, String name) {
 		this.parent = parent;
@@ -101,4 +104,10 @@ public class VirtualContainer<T extends Resource> implements ResourceContainer<T
 	public void clear() {
 		children.clear();
 	}
+
+	@Override
+	public List<String> getIgnoreRules() {
+		return ignoreRules;
+	}
+	
 }
